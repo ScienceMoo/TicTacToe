@@ -1,0 +1,486 @@
+<html>
+   <head>
+      <meta charset = "utf-8">
+      <title>Tic Tac Toe</title>
+     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+      <style type = "text/css">
+          body {
+            font-family: Lato sans-serif;
+          }
+          h1 {
+            font-size: 40px;
+            font-family: Lato sans-serif;
+            font-weight: bold;
+          }
+          #theGame {
+            position: relative;
+            display: flex;
+            height: 80vh;
+            width: 100vm;
+            background-image: url("desk.jpg");
+            background-size: cover;
+            align-items: flex-end;
+            justify-content: flex-end;
+            padding: 30px;
+          }
+          #playerTurn {
+            font-size: 70px;
+            font-family: Lato sans-serif;
+            color: white;
+            position: absolute;
+            top: 60px;
+            right: 80px;
+          }
+          #theBoard {
+            display: flex;
+            flex-wrap: wrap;
+            background-color: black;
+            padding: 0;
+            width: 450px;
+            height: 450px;
+            align-content: space-between;
+            justify-content: space-between;
+          }
+          .tile {
+            font-family: Arial sans-serif;
+            font-weight: bold;
+            background-color: #fff2a5;
+            height: 30%;
+            width: 30%;
+          }
+          .enabled:hover {
+            cursor: pointer;
+            box-shadow: 3px 3px 4px grey;
+          }
+          .enabled:active {
+            box-shadow: inset 4px 4px 4px grey;
+          }
+          .btn {
+            font-size: 20px;
+            background-color: #30a0d5;
+            width: 100px;
+            margin: 10px;
+          }
+          .btn:hover {
+            background-color: #30caff;
+            cursor: pointer;
+            box-shadow: 3px 3px 8px black;
+          }
+          .btn:active {
+            border: none;
+            box-shadow: inset 3px 3px 8px black;
+          }
+          #playButton {
+            font-size: 20px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 10px;
+          }
+          #playButton:hover {
+            cursor: pointer;
+            box-shadow: 3px 3px 8px black;
+          }
+          #playButton:active {
+            border: none;
+            box-shadow: inset 3px 3px 8px black;
+          }
+          #restartIcon {
+            color: #00d517;
+          }
+          input:focus {
+             outline: 0;
+             -moz-outline-style: none;
+          }
+          .button {
+             border: none;
+             padding: 7px 10px;
+             text-align: center;
+             text-decoration: none;
+             display: inline-block;
+             font-size: 16px;
+             color: white;
+             margin-top: 0;
+             margin-bottom: 0;
+          }
+
+      </style>
+   </head>
+   <body>
+      <h1>Tic Tac Toe!</h1>
+      <div style="display: flex; align-items: center; justify-content: center;">
+        <label for="tileNumber">Number of tiles</label>
+        <select id="tileNumber">
+          <option value="9">9</option>
+          <option value="16">16</option>
+          <option value="25">25</option>
+          <option value="36">36</option>
+          <option value="49">49</option>
+          <option value="64">64</option>
+          <option value="81">81</option>
+          <option value="100">100</option>
+        </select>
+        <button id="updateBoardBtn" class="btn">Update</button>
+        <button id="playButton">
+          <div id="playButtonText">Play</div>
+          <i id="restartIcon" class="material-icons">&#xe037</i>
+        </button>
+      </div>
+      <div id="theGame">
+        <div id="playerTurn"></div>
+         <div id="theBoard">
+         </div>
+      </div>
+   </body>
+</html>
+
+<script>
+
+var tiles;
+var gameover = false;
+var round = 1;
+var turn = 0;
+
+var numTiles = 9;
+var sideNum = 3;
+var boxSize = 30;
+var NOBODY = 0;
+var ME = 1;
+var AI = -1;
+
+window.onload = run;
+
+function run() {
+   document.getElementById('updateBoardBtn').addEventListener("click", updateBoard, false);
+   document.getElementById('playButton').addEventListener("click", startGame, false);
+   updateBoard();
+}
+
+function updateBoard() {
+   tileNum = document.getElementById('tileNumber').value;
+   sideNum = Math.sqrt(tileNum);
+   console.log("sideNum: " + sideNum);
+   boxSize = Math.floor(100/sideNum);
+   if (tileNum <= 25) {
+     boxSize = boxSize - 3;
+   }
+   else if (tileNum <= 36) {
+     boxSize = boxSize - 2;
+   }
+   else {
+     boxSize = boxSize - 1;
+   }
+   console.log("boxSize: " + boxSize);
+   var theBoard = document.getElementById('theBoard');
+   while (theBoard.firstChild) {
+      theBoard.removeChild(theBoard.lastChild);
+   }
+   for (var i = 0; i < tileNum; i++) {
+      var newDiv = document.createElement("div");
+      newDiv.className = "tile";
+      newDiv.classList.add("enabled");
+      newDiv.style.height = boxSize + "%";
+      newDiv.style.width = boxSize + "%";
+      newDiv.style.display = "flex";
+      newDiv.style.alignItems = "center";
+      newDiv.style.justifyContent = "center";
+      newDiv.style.fontSize = 100 - tileNum + "";
+      newDiv.addEventListener("click", playTile, false);
+      theBoard.appendChild(newDiv);
+   }
+}
+
+function startGame() {
+  updateBoard();
+  var firstPlayer = Math.round(Math.random());
+  turn = firstPlayer;
+  round = 1;
+   tiles = []
+   for (var x = 0; x < sideNum; x++) {
+     tiles[x] = []
+     for (var y = 0; y < sideNum; y++) {
+       tiles[x][y] = NOBODY;
+     }
+   }
+   console.log(tiles);
+  console.log("turn: " + turn);
+  console.log("round: " + round);
+  console.log(tiles);
+  document.getElementById('playButtonText').innerHTML = "Reset"
+  document.getElementById('restartIcon').innerHTML = "&#xe863"
+  nextRound();
+}
+
+async function nextRound() {
+  if (!checkForWinner()) {
+    round = round + 1;
+    if (turn === 0) {
+      document.getElementById('playerTurn').innerHTML = "AI's turn";
+      turn = 1;
+      await getAIMove();
+    }
+    else {
+      turn = 0;
+      document.getElementById('playerTurn').innerHTML = "Your turn"
+    }
+  }
+  else {
+    var result = checkForWinner();
+    if (result === ME) {
+      document.getElementById('playerTurn').innerHTML = "You won!"
+    }
+    else if (result === AI) {
+      document.getElementById('playerTurn').innerHTML = "You lost!"
+    }
+    else {
+      document.getElementById('playerTurn').innerHTML = "It's a tie!"
+    }
+    var squares = document.getElementById('theBoard').children;
+    for (let i = 0; i < tileNum; i++) {
+      squares[i].classList.remove("enabled");
+      squares[i].removeEventListener("click", playTile, false);
+    }
+    document.getElementById('playButtonText').innerHTML = "Play again"
+    document.getElementById('restartIcon').innerHTML = "&#xe037"
+  }
+}
+
+function checkForWinner() {
+  var winner = null;
+
+  var winningrow = checkRows();
+  var winningcol = checkColumns();
+  var winningdiag = checkDiagonals();
+
+  if (winningrow === ME || winningcol === ME || winningdiag === ME) {
+    winner = ME;
+  }
+  else if (winningrow === AI || winningcol === AI || winningdiag === AI) {
+    winner = AI;
+  }
+  else if (checkForTie()) {
+    winner = NOBODY;
+  }
+  return winner;
+}
+
+function playTile(e) {
+  var tileClicked = e.path[0];
+  tileClicked.innerHTML = "&#10084";
+  tileClicked.removeEventListener("click", playTile, false);
+  tileClicked.classList.remove("enabled");
+  var i = 0;
+  if (tileClicked.previousSibling) {
+    i = 1;
+    var child = tileClicked.previousSibling
+    while( (child = child.previousSibling) != null )
+      i++;
+  }
+  var x_index = Math.floor(i / sideNum);
+  var y_index = i % sideNum;
+  tiles[x_index][y_index] = ME;
+  document.getElementById('playerTurn').innerHTML = "AI's turn";
+  nextRound();
+}
+
+function getAIMove() {
+    console.log("turn: " + turn);
+    console.log("round: " + round);
+    //First check for obvious move
+    var obvWin = checkForObviousWin();
+    if (!obvWin) {
+      var obvLose = checkForLose();
+      if (!obvLose) {
+
+        //If there's no obvious move, play randomly on a spot that isn't already taken
+        var validMove = false;
+        var moveX = 0;
+        var moveY = 0;
+        while (validMove === false) {
+            moveX = Math.floor(Math.random()*sideNum);
+            moveY = Math.floor(Math.random()*sideNum);
+            console.log(tiles);
+            if (tiles[moveX][moveY] === NOBODY) {
+                validMove = true;
+                tiles[moveX][moveY] = AI;
+                var tileIndex = (sideNum * moveX) + moveY;
+                var tileClicked = document.getElementById('theBoard').children[tileIndex];
+                tileClicked.innerHTML = "&#10005";
+                tileClicked.removeEventListener("click", playTile, false);
+                tileClicked.classList.remove("enabled");
+            }
+        }
+      }
+    }
+    console.log(tiles);
+
+    document.getElementById('playerTurn').innerHTML = "Your turn"
+    nextRound();
+}
+
+function checkForObviousWin() {
+  var moveFound = false;
+  var moveX = -1;
+  var moveY = -1;
+  for (var i = 0; i < sideNum; i++) {
+    for (var j = 0; j < sideNum; j++) {
+      if (tiles[i][j] === NOBODY) {
+          tiles[i][j] = AI;
+          if (checkForWinner() === AI) {
+            moveFound = true;
+            moveY = j;
+            break;
+          }
+          else {
+            for (var ii = 0; ii < sideNum; ii++) {
+              for (var jj = 0; jj < sideNum; jj++) {
+                if (tiles[ii][jj] === NOBODY) {
+                    tiles[ii][jj] = AI;
+                    if (checkForWinner() === AI) {
+                      tiles[ii][jj] = NOBODY;
+                      moveFound = true;
+                      moveY = j;
+                      break;
+                    }
+                    else {
+                      tiles[ii][jj] = NOBODY;
+                    }
+                }
+              }
+              if (moveFound) {
+                moveX = i;
+                break;
+              }
+            }
+          }
+        if (moveFound) {
+          break;
+        }
+        else {
+          tiles[i][j] = NOBODY;
+        }
+      }
+    }
+    if (moveFound) {
+      moveX = i;
+      break;
+    }
+  }
+  if (moveFound) {
+    var tileIndex = (sideNum * moveX) + moveY;
+    var tileClicked = document.getElementById('theBoard').children[tileIndex];
+    tileClicked.innerHTML = "&#10005";
+    tileClicked.removeEventListener("click", playTile, false);
+    tileClicked.classList.remove("enabled");
+  }
+  return moveFound;
+}
+
+function checkForLose() {
+  var moveFound = false;
+  var moveX = -1;
+  var moveY = -1;
+  for (var i = 0; i < sideNum; i++) {
+    for (var j = 0; j < sideNum; j++) {
+      if (tiles[i][j] === NOBODY) {
+        tiles[i][j] = ME;
+        if (checkForWinner() === ME) {
+          moveFound = true;
+          moveY = j;
+          break;
+        }
+        else {
+          tiles[i][j] = NOBODY;
+        }
+      }
+    }
+    if (moveFound) {
+      moveX = i;
+      break;
+    }
+  }
+  if (moveFound) {
+    var tileIndex = (sideNum * moveX) + moveY;
+    var tileClicked = document.getElementById('theBoard').children[tileIndex];
+    tileClicked.innerHTML = "&#10005";
+    tileClicked.removeEventListener("click", playTile, false);
+    tileClicked.classList.remove("enabled");
+  }
+  return moveFound;
+}
+
+//Three methods to help checkForWinner method
+function checkRows() {
+    var winner = NOBODY;
+    for (var i = 0; i < sideNum; i++) {
+        var thisrow = true;
+        for (var j = 0; j < sideNum; j++) {
+            if (tiles[i][j] !== tiles[i][0] || tiles[i][0] === NOBODY) {
+                thisrow = false;
+                break;
+            }
+        }
+        if (thisrow === true) {
+            winner = tiles[i][0];
+            break;
+        }
+    }
+    return winner;
+}
+
+function checkColumns() {
+    var winner = NOBODY;
+    for (var j = 0; j < sideNum; j++) {
+        var thiscolumn = true;
+        for (var i = 0; i < sideNum; i++) {
+            if (tiles[i][j] !== tiles[0][j] || tiles[0][j] === NOBODY) {
+                thiscolumn = false;
+                break;
+            }
+        }
+        if (thiscolumn === true) {
+            winner = tiles[0][j];
+            break;
+        }
+    }
+    return winner;
+}
+
+function checkDiagonals() {
+    var n = sideNum;
+    var firstdiag = true;
+    var otherdiag = true;
+    var winner = NOBODY;
+
+    for (var i = 0; i < n; i++) {
+        if (tiles[i][i] !== tiles[0][0] || tiles[0][0] === NOBODY) {
+            firstdiag = false;
+            break;
+        }
+    }
+    if (firstdiag === true) {
+        winner = tiles[0][0];
+    }
+
+    if (winner === NOBODY) {
+        for (var i = 0; i < n; i++) {
+            if (tiles[n-i-1][i] !== tiles[n-1][0] || tiles[n-1][0] === NOBODY) {
+                otherdiag = false;
+                break;
+            }
+        }
+        if (otherdiag === true) {
+            winner = tiles[n-1][0];
+        }
+    }
+
+    return winner;
+}
+
+function checkForTie() {
+    return round > tileNum;
+}
+
+</script>
+
