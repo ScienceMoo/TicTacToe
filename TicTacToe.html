@@ -2,51 +2,46 @@
    <head>
       <meta charset = "utf-8">
       <title>Tic Tac Toe</title>
-     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+      <link href='http://fonts.googleapis.com/css?family=Lato&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
       <style type = "text/css">
-          body {
-            font-family: Lato sans-serif;
+          * {
+            font-family: Lato, sans-serif;
           }
           h1 {
             font-size: 40px;
-            font-family: Lato sans-serif;
             font-weight: bold;
           }
           #theGame {
-            position: relative;
             display: flex;
+            flex-direction: column;
             height: 80vh;
             width: 100vm;
             background-image: url("desk.jpg");
             background-size: cover;
+            justify-content: flex-start;
             align-items: flex-end;
-            justify-content: flex-end;
             padding: 30px;
           }
           #playerTurn {
             font-size: 70px;
-            font-family: Lato sans-serif;
             color: white;
-            position: absolute;
-            top: 60px;
-            right: 80px;
           }
           #theBoard {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-gap: 1%;
             background-color: black;
             padding: 0;
-            width: 450px;
-            height: 450px;
-            align-content: space-between;
-            justify-content: space-between;
+            width: 320px;
+            height: 320px;
+          }
+          #gameHeader {
+            box-shadow: -8px -8px 10px mediumpurple;
           }
           .tile {
             font-family: Arial sans-serif;
             font-weight: bold;
             background-color: #fff2a5;
-            height: 30%;
-            width: 30%;
           }
           .enabled:hover {
             cursor: pointer;
@@ -109,8 +104,8 @@
    </head>
    <body>
       <h1>Tic Tac Toe!</h1>
-      <div style="display: flex; align-items: center; justify-content: center;">
-        <label for="tileNumber">Number of tiles</label>
+      <div id="gameHeader" style="display: flex; align-items: center; justify-content: center;">
+        <label for="tileNumber" style="margin: 20px;">Number of tiles</label>
         <select id="tileNumber">
           <option value="9">9</option>
           <option value="16">16</option>
@@ -121,374 +116,391 @@
           <option value="81">81</option>
           <option value="100">100</option>
         </select>
-        <button id="updateBoardBtn" class="btn">Update</button>
         <button id="playButton">
           <div id="playButtonText">Play</div>
           <i id="restartIcon" class="material-icons">&#xe037</i>
         </button>
       </div>
       <div id="theGame">
+         <div id="theBoard"></div>
         <div id="playerTurn"></div>
-         <div id="theBoard">
-         </div>
       </div>
    </body>
 </html>
 
 <script>
 
-var tiles;
-var gameover = false;
-var round = 1;
-var turn = 0;
+let tiles
+let round = 1
+let turn = 0
 
-var numTiles = 9;
-var sideNum = 3;
-var boxSize = 30;
-var NOBODY = 0;
-var ME = 1;
-var AI = -1;
+let numTiles = 9
+let sideNum = 3
+let NOBODY = 0
+let ME = 1
+let AI = -1
 
-window.onload = run;
+window.onload = run
 
 function run() {
-   document.getElementById('updateBoardBtn').addEventListener("click", updateBoard, false);
-   document.getElementById('playButton').addEventListener("click", startGame, false);
-   updateBoard();
+   document.getElementById('tileNumber').onchange = startGame
+   document.getElementById('playButton').addEventListener("click", startGame, false)
+   startGame()
 }
 
 function updateBoard() {
-   tileNum = document.getElementById('tileNumber').value;
-   sideNum = Math.sqrt(tileNum);
-   console.log("sideNum: " + sideNum);
-   boxSize = Math.floor(100/sideNum);
-   if (tileNum <= 25) {
-     boxSize = boxSize - 3;
-   }
-   else if (tileNum <= 36) {
-     boxSize = boxSize - 2;
-   }
-   else {
-     boxSize = boxSize - 1;
-   }
-   console.log("boxSize: " + boxSize);
-   var theBoard = document.getElementById('theBoard');
+   numTiles = document.getElementById('tileNumber').value
+   sideNum = Math.sqrt(numTiles)
+   console.log("sideNum: " + sideNum)
+   let theBoard = document.getElementById('theBoard')
    while (theBoard.firstChild) {
-      theBoard.removeChild(theBoard.lastChild);
+      theBoard.removeChild(theBoard.lastChild)
    }
-   for (var i = 0; i < tileNum; i++) {
-      var newDiv = document.createElement("div");
-      newDiv.className = "tile";
-      newDiv.classList.add("enabled");
-      newDiv.style.height = boxSize + "%";
-      newDiv.style.width = boxSize + "%";
-      newDiv.style.display = "flex";
-      newDiv.style.alignItems = "center";
-      newDiv.style.justifyContent = "center";
-      newDiv.style.fontSize = 100 - tileNum + "";
-      newDiv.addEventListener("click", playTile, false);
-      theBoard.appendChild(newDiv);
+   theBoard.style.gridTemplate = `repeat(${sideNum}, 1fr) / repeat(${sideNum}, 1fr)`
+   for (let i = 0; i < numTiles; i++) {
+      let newDiv = document.createElement("div")
+      newDiv.className = "tile"
+      newDiv.classList.add("enabled")
+      newDiv.style.display = "flex"
+      newDiv.style.alignItems = "center"
+      newDiv.style.justifyContent = "center"
+      newDiv.style.fontSize = 100 - numTiles + ""
+      newDiv.addEventListener("click", playTile, false)
+      theBoard.appendChild(newDiv)
    }
 }
 
 function startGame() {
-  updateBoard();
-  var firstPlayer = Math.round(Math.random());
-  turn = firstPlayer;
-  round = 1;
+  updateBoard()
+  let firstPlayer = Math.round(Math.random())
+  turn = firstPlayer
+  round = 1
    tiles = []
-   for (var x = 0; x < sideNum; x++) {
+   for (let x = 0; x < sideNum; x++) {
      tiles[x] = []
-     for (var y = 0; y < sideNum; y++) {
-       tiles[x][y] = NOBODY;
+     for (let y = 0; y < sideNum; y++) {
+       tiles[x][y] = NOBODY
      }
    }
-   console.log(tiles);
-  console.log("turn: " + turn);
-  console.log("round: " + round);
-  console.log(tiles);
+   //console.log(tiles)
+  //console.log("turn: " + turn)
+  //console.log("round: " + round)
+  //console.log(tiles)
   document.getElementById('playButtonText').innerHTML = "Reset"
   document.getElementById('restartIcon').innerHTML = "&#xe863"
-  nextRound();
+  nextRound()
 }
 
 async function nextRound() {
-  if (!checkForWinner()) {
-    round = round + 1;
+  if (round <= numTiles && !getWinner(tiles)) {
+    round = round + 1
     if (turn === 0) {
-      document.getElementById('playerTurn').innerHTML = "AI's turn";
-      turn = 1;
-      await getAIMove();
+      document.getElementById('playerTurn').innerHTML = "AI's turn"
+      turn = 1
+      await getAIMove()
     }
     else {
-      turn = 0;
+      turn = 0
       document.getElementById('playerTurn').innerHTML = "Your turn"
     }
   }
   else {
-    var result = checkForWinner();
+    let result = getWinner(tiles)
+    //console.log("winner: " + result)
     if (result === ME) {
+      //console.log("winner: ME")
       document.getElementById('playerTurn').innerHTML = "You won!"
     }
     else if (result === AI) {
+      //console.log("winner: AI")
       document.getElementById('playerTurn').innerHTML = "You lost!"
     }
     else {
+      //console.log("winner: TIE")
       document.getElementById('playerTurn').innerHTML = "It's a tie!"
     }
-    var squares = document.getElementById('theBoard').children;
-    for (let i = 0; i < tileNum; i++) {
-      squares[i].classList.remove("enabled");
-      squares[i].removeEventListener("click", playTile, false);
+    let squares = document.getElementById('theBoard').children
+    for (let i = 0; i < numTiles; i++) {
+      squares[i].classList.remove("enabled")
+      squares[i].removeEventListener("click", playTile, false)
     }
     document.getElementById('playButtonText').innerHTML = "Play again"
     document.getElementById('restartIcon').innerHTML = "&#xe037"
   }
 }
 
-function checkForWinner() {
-  var winner = null;
+function getWinner(pTiles) {
+  let winner = null
 
-  var winningrow = checkRows();
-  var winningcol = checkColumns();
-  var winningdiag = checkDiagonals();
+  let winningrow = checkRows(pTiles)
+  let winningcol = checkColumns(pTiles)
+  let winningdiag = checkDiagonals(pTiles)
 
   if (winningrow === ME || winningcol === ME || winningdiag === ME) {
-    winner = ME;
+    winner = ME
   }
   else if (winningrow === AI || winningcol === AI || winningdiag === AI) {
-    winner = AI;
+    winner = AI
   }
-  else if (checkForTie()) {
-    winner = NOBODY;
-  }
-  return winner;
+  return winner
 }
 
 function playTile(e) {
-  var tileClicked = e.path[0];
-  tileClicked.innerHTML = "&#10084";
-  tileClicked.removeEventListener("click", playTile, false);
-  tileClicked.classList.remove("enabled");
-  var i = 0;
+  let tileClicked = e.path[0]
+  tileClicked.innerHTML = "&#10084"
+  tileClicked.removeEventListener("click", playTile, false)
+  tileClicked.classList.remove("enabled")
+  let i = 0
   if (tileClicked.previousSibling) {
-    i = 1;
-    var child = tileClicked.previousSibling
+    i = 1
+    let child = tileClicked.previousSibling
     while( (child = child.previousSibling) != null )
-      i++;
+      i++
   }
-  var x_index = Math.floor(i / sideNum);
-  var y_index = i % sideNum;
-  tiles[x_index][y_index] = ME;
-  document.getElementById('playerTurn').innerHTML = "AI's turn";
-  nextRound();
+  let x_index = Math.floor(i / sideNum)
+  let y_index = i % sideNum
+  //console.log(tiles)
+  tiles[x_index][y_index] = ME
+  nextRound()
 }
 
 function getAIMove() {
-    console.log("turn: " + turn);
-    console.log("round: " + round);
-    //First check for obvious move
-    var obvWin = checkForObviousWin();
-    if (!obvWin) {
-      var obvLose = checkForLose();
-      if (!obvLose) {
-
-        //If there's no obvious move, play randomly on a spot that isn't already taken
-        var validMove = false;
-        var moveX = 0;
-        var moveY = 0;
-        while (validMove === false) {
-            moveX = Math.floor(Math.random()*sideNum);
-            moveY = Math.floor(Math.random()*sideNum);
-            console.log(tiles);
-            if (tiles[moveX][moveY] === NOBODY) {
-                validMove = true;
-                tiles[moveX][moveY] = AI;
-                var tileIndex = (sideNum * moveX) + moveY;
-                var tileClicked = document.getElementById('theBoard').children[tileIndex];
-                tileClicked.innerHTML = "&#10005";
-                tileClicked.removeEventListener("click", playTile, false);
-                tileClicked.classList.remove("enabled");
-            }
-        }
-      }
-    }
-    console.log(tiles);
-
-    document.getElementById('playerTurn').innerHTML = "Your turn"
-    nextRound();
+  let bestNode = miniMax()
+  if (bestNode.move.x === null || bestNode.move === null) {
+    console.log("Problem with miniMax.")
+  }
+  else if (tiles[bestNode.move.x][bestNode.move.y] === NOBODY) {
+    tiles[bestNode.move.x][bestNode.move.y] = AI
+    let tileIndex = (sideNum * bestNode.move.x) + bestNode.move.y
+    let tileClicked = document.getElementById('theBoard').children[tileIndex]
+    tileClicked.innerHTML = "&#10005"
+    tileClicked.removeEventListener("click", playTile, false)
+    tileClicked.classList.remove("enabled")
+  }
+  else {
+    console.log("Problem with miniMax.")
+  }
+  nextRound()
 }
 
-function checkForObviousWin() {
-  var moveFound = false;
-  var moveX = -1;
-  var moveY = -1;
-  for (var i = 0; i < sideNum; i++) {
-    for (var j = 0; j < sideNum; j++) {
-      if (tiles[i][j] === NOBODY) {
-          tiles[i][j] = AI;
-          if (checkForWinner() === AI) {
-            moveFound = true;
-            moveY = j;
-            break;
+//Three methods to help getWinner method
+function checkRows(pTiles) {
+  //console.log(pTiles)
+  let winner = NOBODY
+  for (let i = 0; i < sideNum; i++) {
+      let thisrow = true
+      for (let j = 1; j < sideNum; j++) {
+          if ((pTiles[i][j] !== pTiles[i][0]) || (pTiles[i][0] === NOBODY)) {
+              thisrow = false
+              break
           }
-          else {
-            for (var ii = 0; ii < sideNum; ii++) {
-              for (var jj = 0; jj < sideNum; jj++) {
-                if (tiles[ii][jj] === NOBODY) {
-                    tiles[ii][jj] = AI;
-                    if (checkForWinner() === AI) {
-                      tiles[ii][jj] = NOBODY;
-                      moveFound = true;
-                      moveY = j;
-                      break;
-                    }
-                    else {
-                      tiles[ii][jj] = NOBODY;
-                    }
-                }
-              }
-              if (moveFound) {
-                moveX = i;
-                break;
-              }
-            }
-          }
-        if (moveFound) {
-          break;
-        }
-        else {
-          tiles[i][j] = NOBODY;
-        }
       }
-    }
-    if (moveFound) {
-      moveX = i;
-      break;
-    }
-  }
-  if (moveFound) {
-    var tileIndex = (sideNum * moveX) + moveY;
-    var tileClicked = document.getElementById('theBoard').children[tileIndex];
-    tileClicked.innerHTML = "&#10005";
-    tileClicked.removeEventListener("click", playTile, false);
-    tileClicked.classList.remove("enabled");
-  }
-  return moveFound;
-}
-
-function checkForLose() {
-  var moveFound = false;
-  var moveX = -1;
-  var moveY = -1;
-  for (var i = 0; i < sideNum; i++) {
-    for (var j = 0; j < sideNum; j++) {
-      if (tiles[i][j] === NOBODY) {
-        tiles[i][j] = ME;
-        if (checkForWinner() === ME) {
-          moveFound = true;
-          moveY = j;
-          break;
-        }
-        else {
-          tiles[i][j] = NOBODY;
-        }
+      if (thisrow === true) {
+          winner = pTiles[i][0]
+          return winner
       }
-    }
-    if (moveFound) {
-      moveX = i;
-      break;
-    }
   }
-  if (moveFound) {
-    var tileIndex = (sideNum * moveX) + moveY;
-    var tileClicked = document.getElementById('theBoard').children[tileIndex];
-    tileClicked.innerHTML = "&#10005";
-    tileClicked.removeEventListener("click", playTile, false);
-    tileClicked.classList.remove("enabled");
-  }
-  return moveFound;
+  return winner
 }
 
-//Three methods to help checkForWinner method
-function checkRows() {
-    var winner = NOBODY;
-    for (var i = 0; i < sideNum; i++) {
-        var thisrow = true;
-        for (var j = 0; j < sideNum; j++) {
-            if (tiles[i][j] !== tiles[i][0] || tiles[i][0] === NOBODY) {
-                thisrow = false;
-                break;
-            }
-        }
-        if (thisrow === true) {
-            winner = tiles[i][0];
-            break;
-        }
-    }
-    return winner;
-}
-
-function checkColumns() {
-    var winner = NOBODY;
-    for (var j = 0; j < sideNum; j++) {
-        var thiscolumn = true;
-        for (var i = 0; i < sideNum; i++) {
-            if (tiles[i][j] !== tiles[0][j] || tiles[0][j] === NOBODY) {
-                thiscolumn = false;
-                break;
+function checkColumns(pTiles) {
+  //console.log(pTiles)
+    let winner = NOBODY
+    for (let j = 0; j < sideNum; j++) {
+        let thiscolumn = true
+        for (let i = 0; i < sideNum; i++) {
+            if (pTiles[i][j] !== pTiles[0][j] || pTiles[0][j] === NOBODY) {
+                thiscolumn = false
+                break
             }
         }
         if (thiscolumn === true) {
-            winner = tiles[0][j];
-            break;
+            winner = pTiles[0][j]
+            break
         }
     }
-    return winner;
+    return winner
 }
 
-function checkDiagonals() {
-    var n = sideNum;
-    var firstdiag = true;
-    var otherdiag = true;
-    var winner = NOBODY;
+function checkDiagonals(pTiles) {
+    let n = sideNum
+    let firstdiag = true
+    let otherdiag = true
+    let winner = NOBODY
 
-    for (var i = 0; i < n; i++) {
-        if (tiles[i][i] !== tiles[0][0] || tiles[0][0] === NOBODY) {
-            firstdiag = false;
-            break;
+    for (let i = 0; i < n; i++) {
+        if (pTiles[i][i] !== pTiles[0][0] || pTiles[0][0] === NOBODY) {
+            firstdiag = false
+            break
         }
     }
     if (firstdiag === true) {
-        winner = tiles[0][0];
+        winner = pTiles[0][0]
     }
 
     if (winner === NOBODY) {
-        for (var i = 0; i < n; i++) {
-            if (tiles[n-i-1][i] !== tiles[n-1][0] || tiles[n-1][0] === NOBODY) {
-                otherdiag = false;
-                break;
+        for (let i = 0; i < n; i++) {
+            if (pTiles[n-i-1][i] !== pTiles[n-1][0] || pTiles[n-1][0] === NOBODY) {
+                otherdiag = false
+                break
             }
         }
         if (otherdiag === true) {
-            winner = tiles[n-1][0];
+            winner = pTiles[n-1][0]
         }
     }
 
-    return winner;
+    return winner
 }
 
-function checkForTie() {
-    return round > tileNum;
+function copyTiles(pTiles) {
+  let tilesCopy = []
+  for (let i = 0; i < sideNum; i++) {
+    tilesCopy[i] = []
+    for (let j = 0; j < sideNum; j++) {
+      tilesCopy[i][j] = pTiles[i][j]
+    }
+  }
+  return tilesCopy
 }
 
-let treeNode = {
-  tiles: [],
-  childNode: null,
-  utility: null,
-  alpha: 0,
-  beta: Infinity,
-  best: 0,
+function miniMax() {
+  let root = treeNode(-Infinity, Infinity, -Infinity, copyTiles(tiles), {x: 0, y: 0})
+  //console.log("root node: " + root.tiles)
+  return maximize(root, 0)
+}
+
+function maximize(node, depth) {
+  let leaf = true
+
+  // console.log("max node: " + node.tiles)
+
+  if (depth > 9) {
+    return 0
+  }
+
+  for (let i = 0; i < sideNum; i++) {
+    for (let j = 0; j < sideNum; j++) {
+      if (node.tiles[i][j] === NOBODY) {
+        leaf = false
+        let nextNode = treeNode(node.alpha, node.beta, Infinity, addMoveToTiles(node.tiles, i, j, AI), {x: i, y: j},)
+        let result = minimize(nextNode, depth + 1)
+        if (result > node.value) {
+          node.move = {x: i, y: j}
+          node.value = result
+        }
+        if (node.value > node.alpha) {
+          node.alpha = result
+        }
+        if (node.alpha >= node.beta) {
+          if (depth === 0) {
+            node.move = {x: i, y: j}
+            console.log(node)
+            return node
+          }
+          return node.value
+        }
+      }
+    }
+    if (node.alpha >= node.beta) {
+      break
+    }
+  }
+  let result = getWinner(node.tiles)
+  if (result) {
+    return (result * -1)
+  }
+  else if (leaf === true) {
+    return 0;
+  }
+  if (depth === 0) {
+    console.log(node)
+    return node
+  }
+  return node.value
+}
+
+function minimize(node, depth) {
+  let leaf = true
+
+  // console.log("min node: " + node.tiles)
+
+  if (depth > 9) {
+    return 0
+  }
+
+  for (let i = 0; i < sideNum; i++) {
+    for (let j = 0; j < sideNum; j++) {
+      if (node.tiles[i][j] === NOBODY) {
+        leaf = false
+        let nextNode = treeNode(node.alpha, node.beta, -Infinity, addMoveToTiles(node.tiles, i, j, ME), {x: i, y: j})
+        let result = maximize(nextNode, depth + 1)
+        if (result < node.value) {
+          node.move = {x: i, y: j}
+          node.value = result
+        }
+        if (node.value < node.beta) {
+          node.beta = result
+        }
+        if (node.alpha >= node.beta) {
+          if (depth === 0) {
+            node.move = {x: i, y: j}
+            return node
+          }
+          return node.value
+        }
+      }
+    }
+    if (node.alpha >= node.beta) {
+      break
+    }
+  }
+  if (round >= (sideNum * 2) - 1) {
+    let result = getWinner(node.tiles)
+    if (result) {
+      return (result * -1)
+    }
+    else if (leaf === true) {
+      return 0;
+    }
+  }
+  if (depth === 0) {
+    console.log(node)
+    return node
+  }
+  return node.value
+}
+
+function addMoveToTiles(pTiles, x, y, player) {
+  let tilesCopy = []
+  for (let i = 0; i < sideNum; i++) {
+    tilesCopy[i] = []
+    for (let j = 0; j < sideNum; j++) {
+      if (i === x && y === j) {
+        if (pTiles[i][j] === NOBODY) {
+          tilesCopy[i][j] = player
+        }
+        else {
+          //console.log("problem with game")
+        }
+      }
+      else {
+        tilesCopy[i][j] = pTiles[i][j]
+      }
+    }
+  }
+  return tilesCopy
+}
+
+function treeNode(pAlpha, pBeta, pValue, pTiles, pMove) {
+  return {
+    tiles: pTiles,
+    alpha: pAlpha,
+    beta: pBeta,
+    value: pValue,
+    move: pMove,
+  }
+
 }
 
 </script>
