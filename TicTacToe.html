@@ -13,19 +13,31 @@
             font-weight: bold;
           }
           #theGame {
+            height: 100vh;
+            width: 100vm;
+          }
+          #theBoardAndTurn {
+            height: 100%;
             display: flex;
             flex-direction: column;
-            height: 80vh;
-            width: 100vm;
-            background-image: url("desk.jpg");
+            background-image: url("desk2.png");
             background-size: cover;
             justify-content: flex-start;
             align-items: flex-end;
-            padding: 30px;
+            z-index: 10;
           }
           #playerTurn {
             font-size: 70px;
             color: white;
+          }
+          #gameTree {
+            background-image: url("scroll.gif");
+            height: 700px;
+            width: 500px;
+            top: 25%;
+            right: 0;
+            background-size: cover;
+            z-index: 5;
           }
           #theBoard {
             display: grid;
@@ -121,9 +133,15 @@
           <i id="restartIcon" class="material-icons">&#xe037</i>
         </button>
       </div>
-      <div id="theGame">
-         <div id="theBoard"></div>
-        <div id="playerTurn"></div>
+      <div id="theGame" style="position: relative;">
+        <div id="gameTree" style="position: absolute; right: 0;">
+          <div id="nothing" style="position: relative; height: 100%; width: 100%;">
+            <div id="theBoardAndTurn" style="position: absolute; right: 0">
+              <div id="theBoard"></div>
+              <div id="playerTurn"></div>
+            </div>
+          </div>
+        </div>
       </div>
    </body>
 </html>
@@ -368,6 +386,21 @@ function miniMax() {
   let root = treeNode(-Infinity, Infinity, -Infinity, copyTiles(tiles), {x: 0, y: 0})
   //console.log("root node: " + root.tiles)
   return maximize(root, 0)
+}
+
+function createMiniMax() {
+  let root = treeNode(-Infinity, Infinity, -Infinity, copyTiles(tiles), {x: 0, y: 0})
+  //console.log("root node: " + root.tiles)
+  let theGame = document.getElementById('theGame')
+  let newDiv = document.createElement("div")
+  newDiv.className = "square"
+  newDiv.style.display = "flex"
+  newDiv.style.alignItems = "center"
+  newDiv.style.justifyContent = "center"
+  newDiv.style.fontSize = 100 - numTiles + ""
+  newDiv.addEventListener("click", playTile, false)
+  theGame.appendChild(newDiv)
+  return setTimeout(maximize, 15000, root, 0);
 }
 
 function maximize(node, depth) {
